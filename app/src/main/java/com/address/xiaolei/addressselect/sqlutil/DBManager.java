@@ -63,7 +63,7 @@ public class DBManager {
                 String cityId = cursor.getString(cursor.getColumnIndex("cityID"));
                 String cityName = cursor.getString(cursor.getColumnIndex("cityName"));
                 String parentId = cursor.getString(cursor.getColumnIndex("parentId"));
-                city = new CityVo(cityType, cityId, cityName, parentId);
+                city = new CityVo(cityId,cityName, parentId,cityType);
                 cityVoList.add(city);
             }
             cursor.close();

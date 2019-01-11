@@ -3,8 +3,12 @@ package com.address.xiaolei.addressselect;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -12,9 +16,14 @@ import android.widget.RelativeLayout;
 import com.address.xiaolei.addressselect.adapter.PickCityAdapter;
 import com.address.xiaolei.addressselect.sqlutil.DBManager;
 import com.address.xiaolei.addressselect.utils.RxUtils;
+import com.address.xiaolei.addressselect.utils.UiUtils;
+import com.address.xiaolei.addressselect.view.FloatingItemDecoration;
 import com.address.xiaolei.addressselect.view.SlideBar;
 import com.address.xiaolei.addressselect.vo.CityVo;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 import butterknife.BindView;
@@ -40,7 +49,11 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.slideBar)
     SlideBar slideBar;
 
-    PickCityAdapter  pickCityAdapter;
+
+    private View headerView;
+    private PickCityAdapter pickCityAdapter;
+    //悬浮itemDecoration
+    private FloatingItemDecoration floatingItemDecoration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +69,23 @@ public class MainActivity extends AppCompatActivity {
      * 初始化视图
      */
     private void initView() {
-
+        pickCityAdapter = new PickCityAdapter();
+        rvCity.setLayoutManager(new LinearLayoutManager(this));
+        rvCity.setAdapter(pickCityAdapter);
+        //头部视图
+        headerView = getLayoutInflater().inflate(R.layout.layout_city_header, (ViewGroup) rvCity.getParent(),
+                false);
+        RecyclerView rvHotCity = (RecyclerView) headerView.findViewById(R.id.rv_hot_city);
+        rvHotCity.setLayoutManager(new GridLayoutManager(this, 3));
+        PickCityAdapter hotCityAdapter = new PickCityAdapter();
+        hotCityAdapter.setNewData(generateHotCity());
+        rvHotCity.setAdapter(hotCityAdapter);
+        //分割线
+        floatingItemDecoration = new FloatingItemDecoration(this,
+                this.getResources().getColor(R.color.divider_normal), 100, 1);
+        floatingItemDecoration.setmTitleHeight(UiUtils.dp2px(this, 27));
+        floatingItemDecoration.setShowFloatingHeaderOnScrolling(true);//悬浮
+        rvCity.addItemDecoration(floatingItemDecoration);
     }
 
 
@@ -81,7 +110,24 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void accept(List<CityVo> cityVoList) throws Exception {
                 Log.d("******", cityVoList.size() + "");
+                pickCityAdapter.setHeaderView(headerView);
+                pickCityAdapter.setNewData(cityVoList);
             }
         });
     }
+
+    /**
+     * 热门城市
+     *
+     * @return
+     */
+    private List<CityVo> generateHotCity() {
+        Gson gson = new Gson();
+        Type type = new TypeToken<List<CityVo>>(){}.getType();
+        String jsonString=this.getResources().getString(R.string.hot_city_json);
+        List<CityVo>cityVoList = gson.fromJson(jsonString,type);
+        return cityVoList;
+    }
+
+
 }

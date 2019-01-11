@@ -15,19 +15,19 @@
         android:padding="@dimen/dp_12">
 
         <ImageView
-            android:visibility="invisible"
             android:id="@+id/iv_clear"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:src="@drawable/ic_clear_gray" />
+            android:src="@drawable/ic_clear_gray"
+            android:visibility="invisible" />
 
         <EditText
-            android:layout_toLeftOf="@id/iv_clear"
             android:id="@+id/et_city_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_toLeftOf="@id/iv_clear"
             android:background="@null"
             android:drawableLeft="@drawable/ic_search_small_2"
             android:drawablePadding="@dimen/dp_10"
@@ -39,11 +39,11 @@
 
     </RelativeLayout>
 
-
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/rv_city"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_city"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/ll_search" />
 
     <com.address.xiaolei.addressselect.view.SlideBar
         android:id="@+id/slideBar"
