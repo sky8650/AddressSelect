@@ -15,7 +15,6 @@
         android:textSize="@dimen/sp_12" />
 
     <TextView
-        android:background="?selectableItemBackground"
         android:id="@+id/tv_location_city"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
