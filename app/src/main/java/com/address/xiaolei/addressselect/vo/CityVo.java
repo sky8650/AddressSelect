@@ -5,6 +5,17 @@ public class CityVo {
     private  String  cityName;
     private  String  parentId;
     private  String  cityType;
+    private  String  pinYin;
+
+    public String getPinYin() {
+        return pinYin;
+    }
+
+    public void setPinYin(String pinYin) {
+        this.pinYin = pinYin;
+    }
+
+    public CityVo(){}
 
     public CityVo(String cityId, String cityName, String parentId, String cityType) {
         this.cityId = cityId;

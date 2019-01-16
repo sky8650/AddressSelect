@@ -1,7 +1,9 @@
 package com.address.xiaolei.addressselect;
 
+import android.annotation.SuppressLint;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,6 +17,7 @@ import android.widget.RelativeLayout;
 
 import com.address.xiaolei.addressselect.adapter.PickCityAdapter;
 import com.address.xiaolei.addressselect.sqlutil.DBManager;
+import com.address.xiaolei.addressselect.utils.PinyinUtil;
 import com.address.xiaolei.addressselect.utils.RxUtils;
 import com.address.xiaolei.addressselect.utils.UiUtils;
 import com.address.xiaolei.addressselect.view.FloatingItemDecoration;
@@ -31,6 +34,8 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
@@ -115,7 +120,8 @@ public class MainActivity extends AppCompatActivity {
             public void accept(List<CityVo> cityVoList) throws Exception {
                 Log.d("******", cityVoList.size() + "");
                 pickCityAdapter.setHeaderView(headerView);
-                pickCityAdapter.setNewData(cityVoList);
+               // pickCityAdapter.setNewData(cityVoList);
+                sortData(cityVoList);
             }
         });
     }
@@ -124,41 +130,42 @@ public class MainActivity extends AppCompatActivity {
     /**
      *数据排序
      */
+    @SuppressLint("CheckResult")
     private   void   sortData(List<CityVo>cityVoList){
-     /*  Observable.fromIterable(cityVoList)
-                .map(new Function<CityVo, List<CityVo>>() {
-                    @Override
-                    public List<CityVo> apply(CityVo cityVo) throws Exception {//转换拼音
-                        List<CityVo>cityVos=new ArrayList<>();
-                        cityVos.add(cityVo);
-                        return cityVos;
-                    }
-                }).flatMap(new Function<List<CityVo>, ObservableSource<?>>() {
-        });*/
-
-     Observable.fromIterable(cityVoList).flatMap(new Function<CityVo, ObservableSource<List<CityVo>>>() {
-         @Override
-         public ObservableSource<List<CityVo>> apply(CityVo cityVo) throws Exception {
-             //
-             return null;
-         }
-     }).toSortedList(new Comparator<List<CityVo>>() {
-         @Override
-         public int compare(List<CityVo> o1, List<CityVo> o2) {
-             return 0;
-         }
-     }).subscribe(new Consumer<List<List<CityVo>>>() {
-         @Override
-         public void accept(List<List<CityVo>> lists) throws Exception {
-
-         }
-     })
-          ;
+      Observable.just(cityVoList).flatMap(new Function<List<CityVo>, ObservableSource<List<CityVo>>>() {
+          @Override
+          public ObservableSource<List<CityVo>> apply(List<CityVo> cityVoList) throws Exception {
+              return setPingyin(cityVoList);
+          }
+      }).subscribe(new Consumer<List<CityVo>>() {
+          @Override
+          public void accept(List<CityVo> cityVoList) throws Exception {
+          }
+      });
 
 
     }
-
     //private   Observable
+
+
+    /**
+     * 处理拼音
+     */
+    private   Observable<List<CityVo>>   setPingyin(final List<CityVo>cityVoList){
+        Observable  observable=  Observable.fromIterable(cityVoList).map(new Function<CityVo, List<CityVo>>() {
+            @Override
+            public List<CityVo> apply(CityVo cityVo) throws Exception {
+                cityVo.setPinYin(PinyinUtil.getPingYin(cityVo.getCityName()));
+                return cityVoList;
+            }
+        }).map(new Function<List<CityVo>, List<CityVo>>() {
+          @Override
+          public  List<CityVo> apply(List<CityVo> o) throws Exception {
+              return o;
+          }
+      });
+      return  observable;
+    }
 
 
     /**
