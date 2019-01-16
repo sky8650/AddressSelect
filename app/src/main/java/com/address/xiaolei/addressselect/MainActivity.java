@@ -24,11 +24,15 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 
@@ -115,6 +119,47 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+
+    /**
+     *数据排序
+     */
+    private   void   sortData(List<CityVo>cityVoList){
+     /*  Observable.fromIterable(cityVoList)
+                .map(new Function<CityVo, List<CityVo>>() {
+                    @Override
+                    public List<CityVo> apply(CityVo cityVo) throws Exception {//转换拼音
+                        List<CityVo>cityVos=new ArrayList<>();
+                        cityVos.add(cityVo);
+                        return cityVos;
+                    }
+                }).flatMap(new Function<List<CityVo>, ObservableSource<?>>() {
+        });*/
+
+     Observable.fromIterable(cityVoList).flatMap(new Function<CityVo, ObservableSource<List<CityVo>>>() {
+         @Override
+         public ObservableSource<List<CityVo>> apply(CityVo cityVo) throws Exception {
+             //
+             return null;
+         }
+     }).toSortedList(new Comparator<List<CityVo>>() {
+         @Override
+         public int compare(List<CityVo> o1, List<CityVo> o2) {
+             return 0;
+         }
+     }).subscribe(new Consumer<List<List<CityVo>>>() {
+         @Override
+         public void accept(List<List<CityVo>> lists) throws Exception {
+
+         }
+     })
+          ;
+
+
+    }
+
+    //private   Observable
+
 
     /**
      * 热门城市
