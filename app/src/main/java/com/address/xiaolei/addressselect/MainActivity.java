@@ -29,6 +29,7 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
@@ -37,6 +38,7 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
+import io.reactivex.Single;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
@@ -63,6 +65,9 @@ public class MainActivity extends AppCompatActivity {
     private PickCityAdapter pickCityAdapter;
     //悬浮itemDecoration
     private FloatingItemDecoration floatingItemDecoration;
+    private HashMap<Integer, String> keys;
+    private HashMap<String, Integer> letterIndexes = new HashMap<>();
+    private LinearLayoutManager llm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +100,17 @@ public class MainActivity extends AppCompatActivity {
         floatingItemDecoration.setmTitleHeight(UiUtils.dp2px(this, 27));
         floatingItemDecoration.setShowFloatingHeaderOnScrolling(true);//悬浮
         rvCity.addItemDecoration(floatingItemDecoration);
+        llm = new LinearLayoutManager(this);
+        rvCity.setLayoutManager(llm);
+
+        //右侧滑动选择
+        slideBar.setOnTouchingLetterChangedListener(new SlideBar.OnTouchingLetterChangedListener() {
+            @Override
+            public void onTouchingLetterChanged(String s, int offset) {
+                int position = letterIndexes.get(s) == null ? -1 : letterIndexes.get(s);
+                llm.scrollToPositionWithOffset(position, offset);
+            }
+        });
     }
 
 
@@ -118,10 +134,7 @@ public class MainActivity extends AppCompatActivity {
         }).compose(RxUtils.schedulersTransformer()).subscribe(new Consumer<List<CityVo>>() {
             @Override
             public void accept(List<CityVo> cityVoList) throws Exception {
-                Log.d("******", cityVoList.size() + "");
-                pickCityAdapter.setHeaderView(headerView);
-               // pickCityAdapter.setNewData(cityVoList);
-                sortData(cityVoList);
+                doData(cityVoList);
             }
         });
     }
@@ -130,41 +143,75 @@ public class MainActivity extends AppCompatActivity {
     /**
      *数据排序
      */
-    @SuppressLint("CheckResult")
-    private   void   sortData(List<CityVo>cityVoList){
-      Observable.just(cityVoList).flatMap(new Function<List<CityVo>, ObservableSource<List<CityVo>>>() {
+    private   void   doData(List<CityVo>cityVoList){
+      Observable.just(cityVoList).doOnNext(new Consumer<List<CityVo>>() {
           @Override
-          public ObservableSource<List<CityVo>> apply(List<CityVo> cityVoList) throws Exception {
-              return setPingyin(cityVoList);
+          public void accept(List<CityVo> cityVoList) throws Exception {
+              setPingyin(cityVoList);
+          }
+      }).doOnNext(new Consumer<List<CityVo>>() {
+          @Override
+          public void accept(List<CityVo> cityVoList) throws Exception {
+              sortData(cityVoList);
           }
       }).subscribe(new Consumer<List<CityVo>>() {
           @Override
           public void accept(List<CityVo> cityVoList) throws Exception {
+              Log.d("aaaaa","aaaa");
           }
       });
 
 
     }
-    //private   Observable
 
 
     /**
      * 处理拼音
      */
-    private   Observable<List<CityVo>>   setPingyin(final List<CityVo>cityVoList){
-        Observable  observable=  Observable.fromIterable(cityVoList).map(new Function<CityVo, List<CityVo>>() {
+    private   List<CityVo> setPingyin(final List<CityVo>cityVoList){
+        for (CityVo  cityVo :cityVoList){
+            cityVo.setPinYin(PinyinUtil.getPingYin(cityVo.getCityName()));
+        }
+        return  cityVoList;
+    }
+
+    /**
+     * 排序
+     */
+    private   void sortData(final List<CityVo>cityVoList){
+        keys = new HashMap<>();
+      Observable.fromIterable(cityVoList).
+                toSortedList(new Comparator<CityVo>() {
             @Override
-            public List<CityVo> apply(CityVo cityVo) throws Exception {
-                cityVo.setPinYin(PinyinUtil.getPingYin(cityVo.getCityName()));
-                return cityVoList;
+            public int compare(CityVo o1, CityVo o2) {
+                //a-z排序
+                String a = o1.getPinYin();
+                String b = o2.getPinYin();
+                return a.compareTo(b);
             }
-        }).map(new Function<List<CityVo>, List<CityVo>>() {
+        }).subscribe(new Consumer<List<CityVo>>() {
           @Override
-          public  List<CityVo> apply(List<CityVo> o) throws Exception {
-              return o;
+          public void accept(List<CityVo> cityVoList) throws Exception {
+              pickCityAdapter.addHeaderView(headerView);
+              pickCityAdapter.setNewData(cityVoList);
+              //添加了头部,所以keys要从1开始
+              keys.put(1, "A");
+              letterIndexes.put("#", 0);
+              letterIndexes.put("A", 1);
+              for (int i = 0; i < cityVoList.size(); i++) {
+                  if (i < cityVoList.size() - 1) {
+                      //首字母不同,设为ky
+                      String pre = cityVoList.get(i).getPinYin().substring(0, 1).toUpperCase();
+                      String next = cityVoList.get(i + 1).getPinYin().substring(0, 1).toUpperCase();
+                      if (!pre.equals(next)) {
+                          keys.put(i + 2, next);
+                          letterIndexes.put(next, i + 2);
+                      }
+                  }
+              }
+              floatingItemDecoration.setKeys(keys);
           }
       });
-      return  observable;
     }
 
 
