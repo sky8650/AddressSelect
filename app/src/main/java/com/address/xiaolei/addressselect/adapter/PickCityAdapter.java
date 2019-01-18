@@ -23,19 +23,8 @@ public class PickCityAdapter extends BaseQuickAdapter<CityVo, BaseViewHolder> {
     @Override
     protected void convert(BaseViewHolder helper, final CityVo item) {
         helper.setText(R.id.tv_city_name, item.getCityName());
-        helper.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (onCityClickListener != null) {
-                    //onCityClickListener.onClick(item);
-                }
-            }
-        });
     }
 
-    public void setOnCityClickListener(OnCityClickListener onCityClickListener) {
-        this.onCityClickListener = onCityClickListener;
-    }
 
     public interface OnCityClickListener{
         void onClick(CityVo item);

@@ -1,19 +1,17 @@
 package com.address.xiaolei.addressselect;
 
-import android.annotation.SuppressLint;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.address.xiaolei.addressselect.adapter.PickCityAdapter;
 import com.address.xiaolei.addressselect.sqlutil.DBManager;
@@ -23,11 +21,11 @@ import com.address.xiaolei.addressselect.utils.UiUtils;
 import com.address.xiaolei.addressselect.view.FloatingItemDecoration;
 import com.address.xiaolei.addressselect.view.SlideBar;
 import com.address.xiaolei.addressselect.vo.CityVo;
+import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -35,13 +33,9 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.ObservableSource;
-import io.reactivex.Single;
-import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 
 /**
  * xiaolei
@@ -49,10 +43,8 @@ import io.reactivex.functions.Function;
 public class MainActivity extends AppCompatActivity {
     DBManager dbManager;
     SQLiteDatabase sqLiteDatabase;
-    @BindView(R.id.iv_clear)
-    ImageView ivClear;
     @BindView(R.id.et_city_name)
-    EditText etCityName;
+    SearchView etCityName;
     @BindView(R.id.ll_search)
     RelativeLayout llSearch;
     @BindView(R.id.rv_city)
@@ -60,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.slideBar)
     SlideBar slideBar;
 
-
+    private List<CityVo> cityVoList;
     private View headerView;
     private PickCityAdapter pickCityAdapter;
     //悬浮itemDecoration
@@ -75,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         initView();
+        initSearch();
         initDb();
     }
 
@@ -111,7 +104,45 @@ public class MainActivity extends AppCompatActivity {
                 llm.scrollToPositionWithOffset(position, offset);
             }
         });
+        //列点击事件
+        pickCityAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                Toast.makeText(MainActivity.this,pickCityAdapter.getItem(position).getCityName(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
+
+
+    /**
+     * 初始化搜索
+     */
+
+    private  void   initSearch(){
+        etCityName.setIconified(false);//设置searchView处于展开状态
+        etCityName.onActionViewExpanded();// 当展开无输入内容的时候，没有关闭的图标
+        etCityName.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                searchData(s);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                slideBar.setVisibility(s.length() > 0 ? View.GONE : View.VISIBLE);
+                if (s.length() > 0) {
+                    searchData(s);
+                } else {
+                    doData(cityVoList);
+                }
+                return true;
+            }
+        });
+
+    }
+
 
 
     /**
@@ -127,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
                         {"cityType", "cityID", "cityName", "parentId"};
                 String selection = "cityType=?";
                 String[] selectionArgs = new String[]{"3"};//type为3时查询的是市
-                List<CityVo> cityVoList = dbManager.query(sqLiteDatabase, columns, selection, selectionArgs);
+                cityVoList = dbManager.query(sqLiteDatabase, columns, selection, selectionArgs);
                 sqLiteDatabase.close();
                 return cityVoList;
             }
@@ -160,7 +191,6 @@ public class MainActivity extends AppCompatActivity {
               Log.d("aaaaa","aaaa");
           }
       });
-
 
     }
 
@@ -213,6 +243,35 @@ public class MainActivity extends AppCompatActivity {
           }
       });
     }
+
+    /**
+     * 搜索数据
+     */
+    private   void   searchData(final String  searchKey){
+        Observable.fromIterable(cityVoList).filter(new Predicate<CityVo>() {
+            @Override
+            public boolean test(CityVo cityVo) throws Exception {
+                if (cityVo.getPinYin().contains(searchKey.trim())||
+                        cityVo.getCityName().contains(searchKey.trim())){
+                    return true;
+                }
+                return false;
+            }
+        }).compose(RxUtils.schedulersTransformer()).
+                toList().
+                subscribe(new Consumer<List<CityVo>>() {
+            @Override
+            public void accept(List<CityVo> cityVoList) throws Exception {
+                keys = new HashMap<Integer, String>();
+                keys.put(0, searchKey.trim().toUpperCase());
+                pickCityAdapter.removeAllHeaderView();
+                pickCityAdapter.setNewData(cityVoList);
+                floatingItemDecoration.setKeys(keys);
+
+            }
+        });
+    }
+
 
 
     /**

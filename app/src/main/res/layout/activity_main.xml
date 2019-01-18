@@ -12,22 +12,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/white"
-        android:padding="@dimen/dp_12">
+        >
 
-        <ImageView
-            android:id="@+id/iv_clear"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:src="@drawable/ic_clear_gray"
-            android:visibility="invisible" />
 
-        <EditText
+        <android.support.v7.widget.SearchView
             android:id="@+id/et_city_name"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_toLeftOf="@id/iv_clear"
+            android:layout_height="50dp"
             android:background="@null"
             android:drawableLeft="@drawable/ic_search_small_2"
             android:drawablePadding="@dimen/dp_10"
