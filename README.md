@@ -65,7 +65,7 @@ Observable.just(dbManager).map(new Function<DBManager, Object>() {
           }
       });
 ```
-### 备注： 这里用到了一个把汉字转拼音的jar，pinyin4j-2.5.0.jar
+### 备注： 这里用到了一个把汉字转拼音的jar，pinyin4j-2.5.0.jar  https://github.com/sky8650/AddressSelect/blob/master/app/libs/pinyin4j-2.5.0.jar
        
        
 
