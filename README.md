@@ -3,9 +3,9 @@
    效果如下图所示
 
 # Example 
-<image src="https://github.com/sky8650/AddressSelect/blob/master/img/device-2019-01-17-185749.png" width="260px"/>    <image 
-src="https://github.com/sky8650/AddressSelect/blob/master/img/device-2019-01-17-185822.png" width="260px"/> <image  
-src="https://github.com/sky8650/AddressSelect/blob/master/img/GIF.gif" width="260px"/>
+ <image  
+src="https://github.com/sky8650/AddressSelect/blob/master/img/GIF.gif" width="260px"/>   <image src="https://github.com/sky8650/AddressSelect/blob/master/img/device-2019-01-17-185749.png" width="260px"/>    <image 
+src="https://github.com/sky8650/AddressSelect/blob/master/img/device-2019-01-17-185822.png" width="260px"/>
 
 # Uasage
 
@@ -66,6 +66,8 @@ Observable.just(dbManager).map(new Function<DBManager, Object>() {
       });
 ```
 ### 备注： 这里用到了一个把汉字转拼音的jar，pinyin4j-2.5.0.jar  https://github.com/sky8650/AddressSelect/blob/master/app/libs/pinyin4j-2.5.0.jar
+
+#### 如果您感觉此项目对您有帮助，请点个star哦…
        
        
 
